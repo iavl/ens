@@ -1,14 +1,14 @@
 module.exports = {
   networks: {
-    'dev.fifs': {
+    "dev.fifs": {
       host: "localhost",
       port: 8545,
-      network_id: "*" // Match any network id
-    }
+      network_id: "*", // Match any network id
+    },
   },
   compilers: {
     solc: {
-      version: "0.7.4",
-    }
-  }
+      version: "0.5.16",
+    },
+  },
 };

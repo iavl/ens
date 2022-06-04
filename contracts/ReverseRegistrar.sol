@@ -1,29 +1,38 @@
-pragma solidity ^0.7.0;
+pragma solidity ^0.5.0;
 
 import "./ENS.sol";
+import "./Resolver.sol";
+import "./ReverseRegistrar.sol";
 
-abstract contract NameResolver {
-    function setName(bytes32 node, string memory name) public virtual;
-}
+// https://etherscan.io/address/0x084b1c3c81545d370f3634392de611caabff8148
+
+/*
+-----Decoded View---------------
+Arg [0] : ensAddr (address): 0x00000000000c2e074ec69a0dfb2997ba6c7d2e1e  - ENSRegistryWithFallback
+Arg [1] : resolverAddr (address): 0xa2c122be93b0074270ebee7f6b7292c7deb45047 - DefaultReverseResolver
+*/
 
 contract ReverseRegistrar {
     // namehash('addr.reverse')
-    bytes32 public constant ADDR_REVERSE_NODE = 0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
+    bytes32 public constant ADDR_REVERSE_NODE =
+        0x91d1777781884d03a6757a803996e38de2a42967fb37eeaca72729271025a9e2;
 
     ENS public ens;
-    NameResolver public defaultResolver;
+    Resolver public defaultResolver;
 
     /**
      * @dev Constructor
      * @param ensAddr The address of the ENS registry.
      * @param resolverAddr The address of the default reverse resolver.
      */
-    constructor(ENS ensAddr, NameResolver resolverAddr) public {
+    constructor(ENS ensAddr, Resolver resolverAddr) public {
         ens = ensAddr;
         defaultResolver = resolverAddr;
 
         // Assign ownership of the reverse record to our deployer
-        ReverseRegistrar oldRegistrar = ReverseRegistrar(ens.owner(ADDR_REVERSE_NODE));
+        ReverseRegistrar oldRegistrar = ReverseRegistrar(
+            ens.owner(ADDR_REVERSE_NODE)
+        );
         if (address(oldRegistrar) != address(0x0)) {
             oldRegistrar.claim(msg.sender);
         }
@@ -46,7 +55,10 @@ contract ReverseRegistrar {
      * @param resolver The address of the resolver to set; 0 to leave unchanged.
      * @return The ENS node hash of the reverse record.
      */
-    function claimWithResolver(address owner, address resolver) public returns (bytes32) {
+    function claimWithResolver(address owner, address resolver)
+        public
+        returns (bytes32)
+    {
         bytes32 label = sha3HexAddress(msg.sender);
         bytes32 node = keccak256(abi.encodePacked(ADDR_REVERSE_NODE, label));
         address currentOwner = ens.owner(node);
@@ -77,7 +89,10 @@ contract ReverseRegistrar {
      * @return The ENS node hash of the reverse record.
      */
     function setName(string memory name) public returns (bytes32) {
-        bytes32 node = claimWithResolver(address(this), address(defaultResolver));
+        bytes32 node = claimWithResolver(
+            address(this),
+            address(defaultResolver)
+        );
         defaultResolver.setName(node, name);
         return node;
     }
@@ -88,23 +103,32 @@ contract ReverseRegistrar {
      * @return The ENS node hash.
      */
     function node(address addr) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(ADDR_REVERSE_NODE, sha3HexAddress(addr)));
+        return
+            keccak256(
+                abi.encodePacked(ADDR_REVERSE_NODE, sha3HexAddress(addr))
+            );
     }
 
     /**
      * @dev An optimised function to compute the sha3 of the lower-case
      *      hexadecimal representation of an Ethereum address.
      * @param addr The address to hash
-     * @return ret The SHA3 hash of the lower-case hexadecimal encoding of the
+     * @return The SHA3 hash of the lower-case hexadecimal encoding of the
      *         input address.
      */
     function sha3HexAddress(address addr) private pure returns (bytes32 ret) {
         addr;
         ret; // Stop warning us about unused variables
         assembly {
-            let lookup := 0x3031323334353637383961626364656600000000000000000000000000000000
+            let
+                lookup
+            := 0x3031323334353637383961626364656600000000000000000000000000000000
 
-            for { let i := 40 } gt(i, 0) { } {
+            for {
+                let i := 40
+            } gt(i, 0) {
+
+            } {
                 i := sub(i, 1)
                 mstore8(i, byte(and(addr, 0xf), lookup))
                 addr := div(addr, 0x10)

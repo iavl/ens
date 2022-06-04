@@ -25,8 +25,8 @@ import {
   Migrations,
   Registrar,
   ReverseRegistrar,
-  TestRegistrar
-} from '@ensdomains/ens'
+  TestRegistrar,
+} from "@ensdomains/ens";
 ```
 
 ## ENSRegistry.sol
